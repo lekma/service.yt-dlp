@@ -40,10 +40,11 @@ def __audio_stream__(fmt, inputstream="adaptive", **kwargs):
         "audioChannels": fmt.get("audio_channels", 2)
     }
     if inputstream == "adaptive": # isa custom attributes
+        pref = fmt.get("language_preference", -1)
         stream.update(
-            original=fmt.get("audioIsOriginal", False),
-            #default=fmt.get("audioIsDefault", False),
-            impaired=fmt.get("audioIsDescriptive", False)
+            original=(pref == 10),
+            #default=(pref == 5),
+            impaired=(pref == -10)
         )
     return stream
 
