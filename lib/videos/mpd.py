@@ -30,7 +30,7 @@ def __audio_stream__(fmt, inputstream="adaptive", track=None, **kwargs):
         "audioSamplingRate": fmt["asr"],
         "audioChannels": fmt.get("audio_channels", 2)
     }
-    if inputstream == "adaptive": # isa custom attributes
+    if (lang and (inputstream == "adaptive")): # isa custom attributes
         pref = fmt.get("language_preference", -1)
         original = (pref == 10)
         default = lang.startswith(track) if track else original
