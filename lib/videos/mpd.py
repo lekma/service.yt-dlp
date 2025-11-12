@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from videos import FpsHints, VideoHeights, NoneCodec
+from videos import defaultResolution, FpsHints, NoneCodec
 
 
 # ------------------------------------------------------------------------------
@@ -16,36 +16,26 @@ def __video_stream__(fmt, fps_limit=0, fps_hint="int", height=None, **kwargs):
             "height": fmt["height"],
             "frameRate": FpsHints[fps_hint]["values"][fps]
         }
-        if (
-            height and
-            (
-                (fmt.get("height", 0) == height) or
-                (
-                    (height := VideoHeights.get(height, {})) and
-                    fmt.get("width", 0) == height["width"]
-                )
-            )
-
-        ):
+        if (height and defaultResolution(fmt, height)):
             stream["default"] = True
         return stream
 
 
-def __audio_stream__(fmt, inputstream="adaptive", **kwargs):
+def __audio_stream__(fmt, inputstream="adaptive", track=None, **kwargs):
+    lang = fmt["language"]
     stream = {
         "codecs": fmt["acodec"],
         "bandwidth": int(fmt["abr"] * 1000),
-        "lang": fmt["language"],
+        "lang": lang,
         "audioSamplingRate": fmt["asr"],
         "audioChannels": fmt.get("audio_channels", 2)
     }
     if inputstream == "adaptive": # isa custom attributes
         pref = fmt.get("language_preference", -1)
-        stream.update(
-            original=(pref == 10),
-            #default=(pref == 5),
-            impaired=(pref == -10)
-        )
+        original = (pref == 10)
+        default = lang.startswith(track) if track else original
+        impaired = (pref == -10)
+        stream.update(original=original, default=default, impaired=impaired)
     return stream
 
 

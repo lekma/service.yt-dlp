@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from videos import languages, NoneCodec
+from videos import defaultResolution, languages, NoneCodec
 
 
 # streams ----------------------------------------------------------------------
@@ -18,7 +18,7 @@ def __subtitles__(subtitles):
     ]
 
 
-def streams(video, formats, subtitles, **kwargs):
+def streams(video, formats, subtitles, height=None, track=None, **kwargs):
     streams = []
     groups = {group_type: {} for group_type in ("video", "audio")}
     subtitles = __subtitles__(subtitles)
@@ -37,19 +37,31 @@ def streams(video, formats, subtitles, **kwargs):
                     "url": f["url"]
                 }
                 if (vcodec and (resolution := f.get("resolution"))):
+                    default = (height and defaultResolution(f, height))
+                    autoselect = "YES" if default else "NO"
                     stream["resolution"] = resolution
                     if (fps := f.get("fps")):
                         stream["frame_rate"] = fps
                         resolution = f"{resolution}@{int(fps)}"
-                    groups["video"][resolution] = {"name": resolution} # setdefault?
+                    groups["video"][resolution] = { # setdefault?
+                        "name": resolution,
+                        "default": autoselect,
+                        "autoselect": autoselect
+                    }
                     stream["video"] = resolution
                 if (
                     acodec and
                     (language := f.get("language")) and
                     (name := languages.language_name(language))
                 ):
+                    original = (f.get("language_preference", -1) == 10)
+                    default = language.startswith(track) if track else original
+                    autoselect = "YES" if default else "NO"
                     groups["audio"][language] = { # setdefault?
-                        "name": name, "language": language
+                        "name": name,
+                        "language": language,
+                        "default": autoselect,
+                        "autoselect": autoselect
                     }
                     stream["audio"] = language
                 if subtitles:

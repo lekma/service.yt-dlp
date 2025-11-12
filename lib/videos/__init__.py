@@ -148,6 +148,17 @@ VideoHeights = {
     0:    {"label": 90011, "width": 0}
 }
 
+def defaultResolution(fmt, height):
+    if (
+        (fmt.get("height", 0) == height) or
+        (
+            (height := VideoHeights.get(height, {})) and
+            (fmt.get("width", 0) == height["width"])
+        )
+    ):
+        return True
+    return False
+
 
 # ------------------------------------------------------------------------------
 # YtDlpVideos
@@ -251,6 +262,7 @@ class YtDlpVideos(object):
         ):
             subtitles = info.get("automatic_captions", {})
         formats = info.get("formats", [])
+        #self.logger.info(f"formats = {formats}")
         video = YtDlpVideo(info)
         if (
             (not video["url"]) or
